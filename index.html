@@ -1,1 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarVote — Celebrity Awards</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 12px -2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+                        'card-hover': '0 20px 38px -12px rgba(37, 99, 235, 0.14), 0 0 0 1px rgba(191, 219, 254, 1)',
+                        'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.18)',
+                    }
+                }
+            }
+        }
+    </script>
 
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .bg-grid-subtle {
+            background-size: 32px 32px;
+            background-image: radial-gradient(circle, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-white bg-grid-subtle text-slate-900 font-sans antialiased selection:bg-blue-100 selection:text-blue-700 min-h-screen flex flex-col"
+      x-data="celebVoteApp()"
+      x-init="initIcons()">
+
+    <!-- Minimal Glassmorphic Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-3 group focus:outline-none">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-sm shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200">
+                    <i data-lucide="sparkles" class="w-4.5 h-4.5"></i>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">
+                        Star<span class="text-blue-600">Vote</span>
+                    </span>
+                    <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold tracking-wide uppercase bg-slate-100 text-slate-600 border border-slate-200/70">
+                        2026
+                    </span>
+                </div>
+            </a>
+
+            <!-- Subtle Live Vote Counter & Paid Ballot Pill -->
+            <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-xs text-slate-700 text-xs sm:text-sm font-medium">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <span class="text-slate-500 hidden xs:inline">Verified Ballot</span>
+                <span class="text-slate-200 hidden xs:inline">|</span>
+                <span class="font-semibold text-blue-600 tabular-nums" x-text="formatNumber(totalVotes) + ' Votes'"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        
+        <!-- Refined 2026 Editorial Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-12">
+            <div class="max-w-2xl">
+            <!-- Subtle Live Vote Counter Pill -->
+            <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-xs text-slate-700 text-xs sm:text-sm font-medium">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <span class="text-slate-500 hidden xs:inline">Live Voting</span>
+                <span class="text-slate-200 hidden xs:inline">|</span>
+                <span class="font-semibold text-blue-600 tabular-nums" x-text="formatNumber(totalVotes) + ' Votes'"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        
+        <!-- Refined 2026 Editorial Header -->
+        <div class="mb-10 sm:mb-12 max-w-2xl">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold tracking-wide mb-4">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <span>Official 2026 Public Voting</span>
+            </div>
+            <h1 class="font-display text-3xl sm:text-4xl lg:text-[2.75rem] font-extrabold tracking-tight text-slate-900 leading-[1.12]">
+                People’s Choice Nominees
+            </h1>
+            <p class="mt-3 text-slate-500 text-base sm:text-lg leading-relaxed">
+                Support your favorite talent. Select a nominee below to submit your official vote.
+            </p>
+        </div>
+
+        <!-- Bento-Style Celebrity Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <template x-for="celeb in celebrities" :key="celeb.id">
+                <article class="group bg-white rounded-[24px] border border-slate-200/80 p-2.5 shadow-sm hover:shadow-xl hover:shadow-blue-950/[0.06] hover:border-blue-200/80 transition-all duration-300 flex flex-col">
+                    
+                    <!-- Rounded Inner Portrait Frame -->
+                    <div class="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100">
+                        <img :src="celeb.image" 
+                             :alt="celeb.name"
+                             loading="lazy"
+                             onerror="this.src='https://placehold.co/600x750/EFF6FF/2563EB?text=Nominee'"
+                             class="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-500 ease-out">
+                        
+                        <!-- Subtle Bottom Gradient Scrim for Contrast -->
+                        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent opacity-70"></div>
+
+                        <!-- Top Floating Glass Vote Tally Badge -->
+                        <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md border border-white/60 shadow-xs flex items-center gap-1.5 text-xs font-semibold text-slate-800 tabular-nums">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                            <span x-text="formatNumber(celeb.votes)"></span>
+                        </div>
+
+                        <!-- Bottom Left Category Tag -->
+                        <div class="absolute bottom-3 left-3">
+                            <span class="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-md text-[11px] font-semibold tracking-wide text-slate-800 shadow-xs" x-text="celeb.role"></span>
+                        </div>
+                    </div>
+
+                    <!-- Card Details & Paid Vote Action -->
+                    <div class="px-2.5 pt-4 pb-2 flex flex-col flex-grow justify-between gap-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <h2 class="font-display text-[17px] font-bold text-slate-900 truncate" x-text="celeb.name"></h2>
+                                <!-- Verified Nominee Checkmark -->
+                                <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified Nominee">
+                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
+                                </svg>
+                            </div>
+                            <span class="text-[11px] font-medium text-slate-400 shrink-0" x-text="'#' + String(celeb.id).padStart(2, '0')"></span>
+                        </div>
+
+                        <!-- Paid Vote Button (Credit Card / Payment Icon, Zero Price Displayed) -->
+                        <button type="button"
+                                @click="openVoteModal(celeb)"
+                                :class="celeb.voted 
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70' 
+                                    : 'bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm shadow-blue-600/15'"
+                                class="w-full py-3 px-4 rounded-2xl border font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                            
+                            <!-- Sleek Credit Card / Paid Ballot Icon -->
+                            <svg class="w-4 h-4 shrink-0" :class="celeb.voted ? 'text-blue-600' : 'text-blue-100'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
+                                <line x1="2" x2="22" y1="10" y2="10"></line>
+                                <line x1="6" x2="10" y1="15" y2="15"></line>
+                            </svg>
+
+                            <span x-text="celeb.voted ? 'Vote Again' : 'Vote'"></span>
+                        </button>
+                    </div>
+                </article>
+            </template>
+        </div>
+
+        <!-- Empty State for "My Ballots" Filter -->
+        <div x-show="filteredCelebrities.length === 0" x-cloak class="text-center py-20 px-4 rounded-3xl border border-dashed border-slate-200 bg-white">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="credit-card" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-bold text-slate-900 text-lg">No ballots cast yet</h3>
+                        <!-- Vote Button (Credit Card / Payment Icon, Zero Price Displayed) -->
+                        <button type="button"
+                                @click="openVoteModal(celeb)"
+                                :class="celeb.voted 
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70' 
+                                    : 'bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm shadow-blue-600/15'"
+                                class="w-full py-3 px-4 rounded-2xl border font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                            
+                            <!-- Sleek Credit Card Icon -->
+                            <svg class="w-4 h-4 shrink-0" :class="celeb.voted ? 'text-blue-600' : 'text-blue-100'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
+                                <line x1="2" x2="22" y1="10" y2="10"></line>
+                                <line x1="6" x2="10" y1="15" y2="15"></line>
+                            </svg>
+
+                            <span x-text="celeb.voted ? 'Vote Again' : 'Vote'"></span>
+                        </button>
+                    </div>
+                </article>
+            </template>
+        </div>
+    </main>
+
+    <!-- 2026 Simplified Vote Confirmation Modal (No Price or Currency Displayed) -->
+    <div x-show="modal.open"
+         x-cloak
+         @keydown.escape.window="closeModal()"
+         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-6">
+        
+        <!-- Backdrop -->
+        <div x-show="modal.open"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="closeModal()"
+             class="fixed inset-0 bg-slate-900/35 backdrop-blur-xs"></div>
+
+        <!-- Modal Card -->
+        <div x-show="modal.open"
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95"
+             class="relative w-full max-w-md bg-white rounded-3xl border border-slate-200/90 shadow-modal p-6 sm:p-7 z-10">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
+                        <line x1="2" x2="22" y1="10" y2="10"></line>
+                    </svg>
+                    <span>Verified Vote</span>
+                </div>
+                <button type="button" @click="closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" aria-label="Close modal">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Selected Celebrity Summary -->
+            <template x-if="modal.celeb">
+                <div>
+                    <div class="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/70 mb-4">
+                        <img :src="modal.celeb.image" :alt="modal.celeb.name" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-white shadow-xs">
+                        <div class="min-w-0">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600" x-text="modal.celeb.role"></span>
+                            <div class="flex items-center gap-1.5">
+                                <h3 class="font-display text-lg font-bold text-slate-900 truncate" x-text="modal.celeb.name"></h3>
+                                <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
+                                </svg>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5 tabular-nums">
+                                Current standing: <span class="font-semibold text-slate-700" x-text="formatNumber(modal.celeb.votes) + ' votes'"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-600 mb-4">
+                        Confirm your vote for <span class="font-semibold text-slate-900" x-text="modal.celeb.name"></span>.
+                    </p>
+
+                    <!-- Subtle Payment Method Badge (No Price Shown) -->
+                    <div class="flex items-center justify-between px-3.5 py-3 rounded-xl border border-slate-200/80 bg-white mb-6 text-xs">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
+                                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-800">Express Vote Pass</p>
+                                <p class="text-[11px] text-slate-400">Instant verified payment</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Active</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                                @click="closeModal()"
+                                class="w-1/3 py-3 px-4 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="button"
+                                @click="confirmVote()"
+                                :disabled="modal.processing"
+                                class="w-2/3 py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-75 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm shadow-blue-600/20 transition-all cursor-pointer">
+                            <template x-if="!modal.processing">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-blue-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
+                                        <line x1="2" x2="22" y1="10" y2="10"></line>
+                                    </svg>
+                                    <span>Confirm Vote</span>
+                                </span>
+                            </template>
+                            <template x-if="modal.processing">
+                                <span class="flex items-center gap-2">
+                                    <svg class="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    <span>Processing...</span>
+                                </span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Sleek Minimal Blue & White Confirmation Toast -->
+    <div x-show="toast.visible"
+         x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+         class="fixed bottom-5 right-5 left-5 sm:left-auto sm:w-96 z-50 bg-white/95 backdrop-blur-md border border-blue-200 rounded-2xl shadow-xl p-4 flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <div class="flex-grow min-w-0">
+            <p class="text-sm font-semibold text-slate-900 truncate" x-text="toast.title"></p>
+            <p class="text-xs text-slate-500 mt-0.5 truncate" x-text="toast.message"></p>
+        </div>
+        <button @click="toast.visible = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer" aria-label="Close notification">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Ultra-Minimal Clean Footer -->
+    <footer class="border-t border-slate-200/80 bg-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500">
+            <div class="flex items-center gap-2.5">
+                <span class="font-display font-bold text-slate-900">&copy; 2026 Star<span class="text-blue-600">Vote</span></span>
+                <span class="text-slate-300">•</span>
+                <span>Official Public Voting</span>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <a href="#privacy" @click.prevent="showToast('Privacy Policy', 'All votes are encrypted and anonymized.')" class="hover:text-blue-600 transition-colors">Privacy</a>
+                <a href="#terms" @click.prevent="showToast('Terms of Service', 'Official 2026 voting terms apply to all submissions.')" class="hover:text-blue-600 transition-colors">Terms</a>
+                <a href="#audit" @click.prevent="showToast('Independent Audit', 'Live vote counts are verified in real time.')" class="hover:text-blue-600 transition-colors">Audit</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Alpine.js State & Logic -->
+    <script>
+        function celebVoteApp() {
+            return {
+                modal: {
+                    open: false,
+                    celeb: null,
+                    processing: false
+                },
+                toast: {
+                    visible: false,
+                    title: '',
+                    message: '',
+                    timeout: null
+                },
+                celebrities: [
+                    {
+                        id: 1,
+                        name: 'Elena Vance',
+                        role: 'Film & Drama',
+                        votes: 14280,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 2,
+                        name: 'Marcus Sterling',
+                        role: 'Music Artist',
+                        votes: 18940,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 3,
+                        name: 'Sora Takahashi',
+                        role: 'Cinema & Stage',
+                        votes: 12615,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 4,
+                        name: 'Julian Mercer',
+                        role: 'Recording Artist',
+                        votes: 15430,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 5,
+                        name: 'Amara Okafor',
+                        role: 'Lead Actress',
+                        votes: 21105,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 6,
+                        name: 'Lucas Lindqvist',
+                        role: 'Director & Actor',
+                        votes: 9870,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 7,
+                        name: 'Camila Morales',
+                        role: 'Pop Vocalist',
+                        votes: 17320,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=85'
+                    },
+                    {
+                        id: 8,
+                        name: 'Devon Brooks',
+                        role: 'Comedy & TV',
+                        votes: 11490,
+                        voted: false,
+                        image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=85'
+                    }
+                ],
+
+                get totalVotes() {
+                    return this.celebrities.reduce((sum, celeb) => sum + celeb.votes, 0);
+                },
+
+                initIcons() {
+                    this.$nextTick(() => {
+                        if (window.lucide) {
+                            lucide.createIcons();
+                        }
+                    });
+                },
+
+                formatNumber(num) {
+                    return num.toLocaleString('en-US');
+                },
+
+                openVoteModal(celeb) {
+                    this.modal.celeb = celeb;
+                    this.modal.processing = false;
+                    this.modal.open = true;
+                },
+
+                closeModal() {
+                    if (this.modal.processing) return;
+                    this.modal.open = false;
+                },
+
+                confirmVote() {
+                    if (!this.modal.celeb || this.modal.processing) return;
+                    this.modal.processing = true;
+
+                    setTimeout(() => {
+                        const target = this.modal.celeb;
+                        target.voted = true;
+                        target.votes += 1;
+
+                        this.modal.processing = false;
+                        this.modal.open = false;
+
+                        this.showToast(
+                            `Vote Confirmed`,
+                            `Vote recorded for ${target.name}.`
+                        );
+                    }, 450);
+                },
+
+                showToast(title, message) {
+                    if (this.toast.timeout) {
+                        clearTimeout(this.toast.timeout);
+                    }
+                    this.toast.title = title;
+                    this.toast.message = message;
+                    this.toast.visible = true;
+
+                    this.toast.timeout = setTimeout(() => {
+                        this.toast.visible = false;
+                    }, 3200);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
