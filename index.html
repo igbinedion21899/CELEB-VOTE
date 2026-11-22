@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StarVote — Celebrity Voting</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -91,6 +95,7 @@
               <img
                 :src="celeb.image"
                 :alt="celeb.name"
+                onerror="this.src='https://placehold.co/600x750/EFF6FF/2563EB?text=Nominee'"
                 class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
@@ -103,16 +108,18 @@
               </template>
             </div>
 
-            <!-- Celebrity Name & Vote Button -->
+            <!-- Celebrity Name, Category & Vote Button -->
             <div class="pt-4 pb-1 px-1 flex flex-col flex-1 justify-between gap-4">
-              <div class="flex items-center justify-between gap-2">
+              <div>
                 <div class="flex items-center gap-1.5 min-w-0">
                   <h2 class="font-bold text-base text-slate-900 truncate" x-text="celeb.name"></h2>
                   <!-- Verified Blue Badge -->
-                  <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-label="Verified">
                     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
                   </svg>
                 </div>
+                <!-- Artist Category -->
+                <p class="mt-0.5 text-xs font-medium text-slate-500 truncate" x-text="celeb.category"></p>
               </div>
 
               <button
@@ -138,12 +145,12 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
       <div class="flex items-center gap-2 font-medium text-slate-600">
         <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-        <span>StarVote © 2026. All rights reserved.</span>
+        <span>StarVote &copy; 2026. All rights reserved.</span>
       </div>
       <div class="flex items-center gap-6">
-        <a href="#" class="hover:text-blue-600 transition">Terms</a>
-        <a href="#" class="hover:text-blue-600 transition">Privacy</a>
-        <a href="#" class="hover:text-blue-600 transition">Support</a>
+        <a href="#terms" @click.prevent="showToast('Official 2026 StarVote terms apply to all submissions.')" class="hover:text-blue-600 transition">Terms</a>
+        <a href="#privacy" @click.prevent="showToast('All votes are encrypted and securely processed.')" class="hover:text-blue-600 transition">Privacy</a>
+        <a href="#support" @click.prevent="showToast('24/7 voter support is available for all verified entries.')" class="hover:text-blue-600 transition">Support</a>
       </div>
     </div>
   </footer>
@@ -179,23 +186,30 @@
       x-transition:leave-end="opacity-0 scale-95 translate-y-2"
       class="relative w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-2xl p-6 z-10"
     >
-      <!-- Modal Header -->
+      <!-- Modal Header with Celebrity Name & Artist Category -->
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 min-w-0">
           <img
             :src="selectedCeleb?.image"
             :alt="selectedCeleb?.name"
-            class="w-11 h-11 rounded-full object-cover ring-2 ring-blue-100"
+            onerror="this.src='https://placehold.co/100x100/EFF6FF/2563EB?text=Star'"
+            class="w-12 h-12 rounded-full object-cover ring-2 ring-blue-100 shrink-0"
           />
-          <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-blue-600">Cast Vote</p>
-            <h3 class="text-base font-bold text-slate-900" x-text="selectedCeleb?.name"></h3>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h3 class="text-base font-bold text-slate-900 truncate" x-text="selectedCeleb?.name"></h3>
+              <svg class="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7L6 12.6l1.5-1.5 2.6 2.6 6.4-6.4 1.5 1.5-7.9 7.9z"/>
+              </svg>
+            </div>
+            <p class="text-xs font-medium text-blue-600 mt-0.5 truncate" x-text="selectedCeleb?.category"></p>
           </div>
         </div>
         <button
           type="button"
           @click="closeModal()"
-          class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+          aria-label="Close modal"
+          class="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer shrink-0"
         >
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
@@ -213,6 +227,7 @@
             type="button"
             @click="decrementVotes()"
             :disabled="voteQuantity <= 1"
+            aria-label="Decrease votes"
             class="w-11 h-11 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center shadow-2xs transition cursor-pointer"
           >
             <i data-lucide="minus" class="w-4 h-4"></i>
@@ -224,12 +239,14 @@
             max="1000"
             x-model.number="voteQuantity"
             @input="sanitizeQuantity()"
+            aria-label="Vote quantity"
             class="w-24 text-center bg-transparent text-xl font-extrabold text-slate-900 focus:outline-none"
           />
 
           <button
             type="button"
             @click="incrementVotes()"
+            aria-label="Increase votes"
             class="w-11 h-11 rounded-xl bg-white border border-slate-200/80 text-slate-700 hover:border-blue-300 hover:text-blue-600 flex items-center justify-center shadow-2xs transition cursor-pointer"
           >
             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -399,48 +416,56 @@
           {
             id: 1,
             name: 'Zendaya',
+            category: 'Actress & Singer',
             image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 2,
             name: 'Michael B. Jordan',
+            category: 'Actor & Producer',
             image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 3,
             name: 'Margot Robbie',
+            category: 'Actress & Filmmaker',
             image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 4,
             name: 'Timothée Chalamet',
+            category: 'Actor & Style Icon',
             image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 5,
             name: 'Rihanna',
+            category: 'Singer & Mogul',
             image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 6,
             name: 'Idris Elba',
+            category: 'Actor & DJ',
             image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 7,
             name: 'Selena Gomez',
+            category: 'Pop Singer & Actress',
             image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           },
           {
             id: 8,
             name: 'Chris Evans',
+            category: 'Actor & Director',
             image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80',
             userVotes: 0
           }
